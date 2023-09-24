@@ -42,7 +42,7 @@ func PrintFaults(fileName string, faults []Fault) error {
     return nil
 }
 
-func readFile(fileName string) (*[]string, error) {
+func readFile(fileName string) ([]string, error) {
     file, err := os.ReadFile(fileName)
     if err != nil { return nil, err }
 
@@ -52,7 +52,7 @@ func readFile(fileName string) (*[]string, error) {
         fileLines = append(fileLines, line + "\n")
     }
 
-    return &fileLines, nil
+    return fileLines, nil
 }
 
 type fileCounter struct {
@@ -60,7 +60,7 @@ type fileCounter struct {
     lines int64
 }
 
-func printFault(fileLines *[]string, fault Fault) {
+func printFault(fileLines []string, fault Fault) {
     position := fault.Obj.FaultPosition()
     counter := fileCounter {}
 
@@ -74,10 +74,10 @@ func printFault(fileLines *[]string, fault Fault) {
     }
 }
 
-func seek(fileLines *[]string, fault Fault, counter *fileCounter) {
+func seek(fileLines []string, fault Fault, counter *fileCounter) {
     position := fault.Obj.FaultPosition()
 
-    for _, line := range *fileLines {
+    for _, line := range fileLines {
         lineLen := uint64(len(line))
         if counter.chars + lineLen > position.Start { break }
 
@@ -86,14 +86,14 @@ func seek(fileLines *[]string, fault Fault, counter *fileCounter) {
     }
 }
 
-func printLine(fileLines *[]string, fault Fault, counter *fileCounter) {
-    if counter.lines == int64(len(*fileLines)) {
+func printLine(fileLines []string, fault Fault, counter *fileCounter) {
+    if counter.lines == int64(len(fileLines)) {
         fmt.Printf("%4d|EOF\n    |^^^\n", counter.lines + 1)
         return
     }
 
     position := fault.Obj.FaultPosition()
-    line := (*fileLines)[counter.lines]
+    line := fileLines[counter.lines]
     marks := strings.Builder {}
 
     for range line {
