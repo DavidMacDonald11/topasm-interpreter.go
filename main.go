@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+    "topasm/core"
 )
 
 func main() {
@@ -16,12 +17,12 @@ func main() {
     fileLines := string(file)
     println(fileLines)
 
-    token := Token {
-        Type: Key,
+    token := core.Token {
+        Type: core.Key,
         Str: "move",
         Position: uint64(0),
     }
 
-    fault := NewFault(&token, "Test", "Nil")
-    PrintFaults(fileName, []Fault { fault })
+    fault := core.NewFault(&token, "Test", "Nil")
+    core.PrintFaults(fileName, []core.Fault { fault })
 }

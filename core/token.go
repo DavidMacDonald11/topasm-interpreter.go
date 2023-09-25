@@ -1,8 +1,9 @@
-package main
+package core
 
 import (
 	"fmt"
 	"strings"
+	"golang.org/x/exp/slices"
 )
 
 type TokenType string
@@ -31,29 +32,18 @@ func (self *Token) FaultPosition() UIntRange {
 }
 
 func (self *Token) Of(types ...TokenType) bool {
-    for _, t := range types {
-        if self.Type == t { return true }
-    }
-
-    return false
+    return slices.Contains(types, self.Type)
 }
 
 func (self *Token) Has(strs ...string) bool {
-    for _, s := range strs {
-        if self.Str == s { return true }
-    }
-
-    return false
+    return slices.Contains(strs, self.Str)
 }
 
 func (self *Token) String() string {
-    var str string
-
-    if self.Str == "" {
-        str = "EOF"
-    } else {
-        str = strings.ReplaceAll(self.Str, "\n", "\\n")
-    }
-
+    str := IfThen(self.Str == "", "EOF", self.escapedStr())
     return fmt.Sprintf("%s'%s'", self.Type, str)
+}
+
+func (self *Token) escapedStr() string {
+    return strings.ReplaceAll(self.Str, "\n", "\\n")
 }

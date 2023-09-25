@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"fmt"
@@ -97,10 +97,8 @@ func printLine(fileLines []string, fault Fault, counter *fileCounter) {
     marks := strings.Builder {}
 
     for range line {
-        var c byte
-        if position.contains(counter.chars) { c = '^' } else { c = ' ' }
-
-        marks.WriteByte(c)
+        c := IfThen(position.contains(counter.chars), '^', ' ')
+        marks.WriteRune(c)
         counter.chars++
     }
 
