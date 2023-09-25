@@ -3,19 +3,19 @@ package main
 import (
 	"log"
 	"os"
-    "topasm/core"
+	"topasm/core"
+	"topasm/io"
 )
 
 func main() {
     if len(os.Args) < 2 { log.Fatal("Must provide a file to parse") }
-
     fileName := os.Args[1]
 
-    file, err := os.ReadFile(fileName)
-    if err != nil { log.Fatal(err) }
+    file := io.NewSourceFile(fileName)
 
-    fileLines := string(file)
-    println(fileLines)
+    for !file.AtEnd() {
+        println(file.ReadChar())
+    }
 
     token := core.Token {
         Type: core.Key,
