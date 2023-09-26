@@ -67,10 +67,10 @@ func (self *SourceFile) ReadCharsUntil(until string) string {
     })
 }
 
-func (self *SourceFile) readWhile(condition func() bool) string {
+func (self *SourceFile) readWhile(predicate func() bool) string {
     self.buffer.Reset()
 
-    for !self.AtEnd() && condition() {
+    for !self.AtEnd() && predicate() {
         self.buffer.WriteByte(self.NextChar())
         self.charPos++
     }

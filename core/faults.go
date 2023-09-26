@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -22,24 +23,24 @@ type Faultable interface {
 type Fault struct {
     Obj Faultable
     Message string
+    Fail bool
 }
 
-func NewFault(obj Faultable, label string, message string) Fault {
+func NewFault(obj Faultable, label string, message string, fail bool) Fault {
     return Fault {
         Obj: obj,
         Message: fmt.Sprintf("%s Error: %s", label, message),
+        Fail: fail,
     }
 }
 
-func PrintFaults(fileName string, faults []Fault) error {
+func PrintFaults(fileName string, faults []Fault) {
     fileLines, err := readFile(fileName)
-    if err != nil { return err }
+    if err != nil { log.Fatal(err) }
 
     for _, fault := range faults {
         printFault(fileLines, fault)
     }
-
-    return nil
 }
 
 func readFile(fileName string) ([]string, error) {
@@ -62,7 +63,7 @@ type fileCounter struct {
 
 func printFault(fileLines []string, fault Fault) {
     position := fault.Obj.FaultPosition()
-    counter := fileCounter {}
+    counter := fileCounter{}
 
     seek(fileLines, fault, &counter)
 
@@ -94,7 +95,7 @@ func printLine(fileLines []string, fault Fault, counter *fileCounter) {
 
     position := fault.Obj.FaultPosition()
     line := fileLines[counter.lines]
-    marks := strings.Builder {}
+    marks := strings.Builder{}
 
     for range line {
         c := IfThen(position.contains(counter.chars), '^', ' ')
