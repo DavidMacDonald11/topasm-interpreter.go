@@ -3,106 +3,81 @@ package core
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
 )
 
-type UIntRange struct {
-    Start uint64
-    End uint64
+type position = UIntRange
+
+type filePos struct {
+    char uint64
+    line int64
 }
 
-func (self *UIntRange) contains(n uint64) bool {
-    return n >= self.Start && n <= self.End
-}
-
-type Faultable interface {
-    FaultPosition() UIntRange
+type Positioner interface {
+    Position() position
 }
 
 type Fault struct {
-    Obj Faultable
-    Message string
-    Fail bool
+    pos position
+    msg string
+    isFail bool
 }
 
-func NewFault(obj Faultable, label string, message string, fail bool) Fault {
+func NewFault(p Positioner, label string, msg string, isFail bool) Fault {
     return Fault {
-        Obj: obj,
-        Message: fmt.Sprintf("%s Error: %s", label, message),
-        Fail: fail,
+        pos: p.Position(),
+        msg: fmt.Sprintf("%s Error: %s", label, msg),
+        isFail: isFail,
     }
 }
 
-func PrintFaults(fileName string, faults []Fault) {
-    fileLines, err := readFile(fileName)
+func (f Fault) IsFail() bool { return f.isFail }
+
+func (f Fault) print(file FileLines) {
+    println(f.msg)
+
+    pos := filePos{}
+    f.seek(file, &pos)
+
+    for {
+        if pos.line == int64(len(file)) {
+            fmt.Printf("%4d|EOF\n    |^^^\n", pos.line + 1)
+            return
+        }
+
+        line := file[pos.line]
+        marks := strings.Builder{}
+
+        for range line {
+            c := IfElse(f.pos.contains(pos.char), '^', ' ')
+            marks.WriteRune(c)
+            pos.char += uint64(1)
+        }
+
+        fmt.Printf("%4d|%s    |%s\n", pos.line + 1, line, marks.String())
+        pos.line += 1
+
+        if pos.char >= f.pos.End { break }
+    }
+}
+
+func (f Fault) seek(file FileLines, pos *filePos) {
+    for _, line := range file {
+        char := pos.char + uint64(len(line))
+        if char > f.pos.Start { break }
+
+        pos.char = char
+        pos.line += 1
+    }
+}
+
+type Faults []Fault
+
+func (f Faults) Print(filePath string) {
+    file, err := NewFileLines(filePath)
     if err != nil { log.Fatal(err) }
 
-    for _, fault := range faults {
-        printFault(fileLines, fault)
+    for _, fault := range f {
+        fault.print(file)
     }
-}
-
-func readFile(fileName string) ([]string, error) {
-    file, err := os.ReadFile(fileName)
-    if err != nil { return nil, err }
-
-    var fileLines []string
-
-    for _, line := range strings.Split(string(file), "\n") {
-        fileLines = append(fileLines, line + "\n")
-    }
-
-    return fileLines, nil
-}
-
-type fileCounter struct {
-    chars uint64
-    lines int64
-}
-
-func printFault(fileLines []string, fault Fault) {
-    position := fault.Obj.FaultPosition()
-    counter := fileCounter{}
-
-    seek(fileLines, fault, &counter)
-
-    println(fault.Message)
-    printLine(fileLines, fault, &counter)
-
-    for counter.chars < position.End {
-        printLine(fileLines, fault, &counter)
-    }
-}
-
-func seek(fileLines []string, fault Fault, counter *fileCounter) {
-    position := fault.Obj.FaultPosition()
-
-    for _, line := range fileLines {
-        lineLen := uint64(len(line))
-        if counter.chars + lineLen > position.Start { break }
-
-        counter.chars += lineLen
-        counter.lines++
-    }
-}
-
-func printLine(fileLines []string, fault Fault, counter *fileCounter) {
-    if counter.lines == int64(len(fileLines)) {
-        fmt.Printf("%4d|EOF\n    |^^^\n", counter.lines + 1)
-        return
-    }
-
-    position := fault.Obj.FaultPosition()
-    line := fileLines[counter.lines]
-    marks := strings.Builder{}
-
-    for range line {
-        c := IfThen(position.contains(counter.chars), '^', ' ')
-        marks.WriteRune(c)
-        counter.chars++
-    }
-
-    fmt.Printf("%4d|%s    |%s\n", counter.lines + 1, line, marks.String())
-    counter.lines++
 }

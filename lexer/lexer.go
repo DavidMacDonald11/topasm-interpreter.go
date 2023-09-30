@@ -10,16 +10,18 @@ import (
 
 type File = io.SourceFile
 type Token = token.Token
+type Tokens = token.Tokens
 type Fault = core.Fault
+type Faults = core.Faults
 type Result = result.Result
 
-func TokenizeFile(filePath string) ([]Token, []Fault) {
+func TokenizeFile(filePath string) (Tokens, Faults) {
     file := io.NewSourceFile(filePath)
-    tokens := []Token{}
-    faults := []Fault{}
+    tokens := Tokens{}
+    faults := Faults{}
 
     for !file.AtEnd() {
-        saveNextNewline := len(tokens) > 0 && !tokens[len(tokens) - 1].Has("\n")
+        saveNextNewline := len(tokens) > 0 && tokens.Last().Has("\n")
         result := makeToken(file, saveNextNewline)
 
         if result.HasToken() { tokens = append(tokens, *result.Token) }
@@ -31,16 +33,12 @@ func TokenizeFile(filePath string) ([]Token, []Fault) {
     return tokens, faults
 }
 
-func newToken(file File, kind token.Kind, str string) Token {
-    return Token {
-        Kind: kind,
-        Str: str,
-        Position: file.CharPos() - uint64(len(str)),
-    }
+func newToken(file File, k token.Kind, s string) Token {
+    return token.NewToken(k, s, file.CharPos() - uint64(len(s)))
 }
 
-func newFaultToken(file File, str string) Token {
-    return newToken(file, token.None, str)
+func newFaultToken(file File, s string) Token {
+    return newToken(file, token.None, s)
 }
 
 func makeToken(file File, saveNextNewline bool) Result {

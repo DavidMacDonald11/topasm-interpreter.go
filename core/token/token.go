@@ -20,15 +20,49 @@ const (
 )
 
 type Token struct {
-    Kind Kind
-    Str string
-    Position uint64
+    kind Kind
+    str string
+    pos uint64
 }
 
-func Join(tokens []Token) string {
+func NewToken(k Kind, s string, pos uint64) Token {
+    return Token {
+        kind: k,
+        str: s,
+        pos: pos,
+    }
+}
+
+func (t *Token) Position() core.UIntRange {
+    return core.UIntRange {
+        Start: t.pos,
+        End: t.pos + uint64(len(t.str) - 1),
+    }
+}
+
+func (t *Token) Of(kinds ...Kind) bool {
+    return slices.Contains(kinds, t.kind)
+}
+
+func (t *Token) Has(strs ...string) bool {
+    return slices.Contains(strs, t.str)
+}
+
+func (t *Token) String() string {
+    str := core.IfElse(t.str == "", "EOF", t.escapedStr())
+    return fmt.Sprintf("%s'%s'", t.kind, str)
+}
+
+func (t *Token) escapedStr() string {
+    return strings.ReplaceAll(t.str, "\n", "\\n")
+}
+
+type Tokens []Token
+
+func (t Tokens) String() string {
     builder := strings.Builder{}
 
-    for i, token := range tokens {
+    for i, token := range t {
         if i != 0 { builder.WriteString(", ") }
         builder.WriteString(token.String())
     }
@@ -36,26 +70,6 @@ func Join(tokens []Token) string {
     return "[" + builder.String() + "]"
 }
 
-func (self *Token) FaultPosition() core.UIntRange {
-    return core.UIntRange {
-        Start: self.Position,
-        End: self.Position + uint64(len(self.Str) - 1),
-    }
-}
-
-func (self *Token) Of(kinds ...Kind) bool {
-    return slices.Contains(kinds, self.Kind)
-}
-
-func (self *Token) Has(strs ...string) bool {
-    return slices.Contains(strs, self.Str)
-}
-
-func (self *Token) String() string {
-    str := core.IfThen(self.Str == "", "EOF", self.escapedStr())
-    return fmt.Sprintf("%s'%s'", self.Kind, str)
-}
-
-func (self *Token) escapedStr() string {
-    return strings.ReplaceAll(self.Str, "\n", "\\n")
+func (t Tokens) Last() *Token {
+    return core.IfElse(len(t) > 0, &t[len(t) - 1], nil)
 }
