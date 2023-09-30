@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"topasm/lexer"
+    "topasm/parser"
 )
 
 func main() {
@@ -16,4 +17,9 @@ func main() {
     println(tokens.String())
 
     faults.Print(filePath)
+
+    node := parser.ParseTokens(tokens)
+
+    println("Created tree:")
+    println(node.String())
 }

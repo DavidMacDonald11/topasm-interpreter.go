@@ -1,1 +1,6 @@
-move 4 into #1
+move 72 into #0
+move 69 into #1
+
+printc #0
+printc #1
+printc 10

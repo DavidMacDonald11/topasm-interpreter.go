@@ -10,5 +10,6 @@ const (
 func Keywords() []string {
     return []string {
         "move", "into", "add", "sub", "from",
+        "printc", "printi",
     }
 }

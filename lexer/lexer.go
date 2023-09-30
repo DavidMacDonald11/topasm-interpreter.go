@@ -24,7 +24,7 @@ func TokenizeFile(filePath string) (Tokens, Faults) {
     faults := Faults{}
 
     for !file.AtEnd() {
-        saveNextNewline := len(tokens) > 0 && tokens.Last().Has("\n")
+        saveNextNewline := len(tokens) > 0 && !tokens.Last().Has("\n")
         result := makeToken(&file, saveNextNewline)
 
         if result.HasToken() { tokens = append(tokens, *result.Token) }
