@@ -41,8 +41,8 @@ func (s *SourceFile) Peek(n int) string {
     return s.contents[lower:]
 }
 
-func (s *SourceFile) NextChar() byte {
-    return core.IfElse(s.AtEnd(), '\u0000', s.Peek(1)[0])
+func (s *SourceFile) NextChar() rune {
+    return core.IfElse(s.AtEnd(), '\u0000', rune(s.Peek(1)[0]))
 }
 
 func (s *SourceFile) ReadChar() string {
@@ -57,13 +57,13 @@ func (s *SourceFile) ReadChars(n int) string {
 
 func (s *SourceFile) ReadTheseChars(these string) string {
     return s.readWhile(func() bool {
-        return strings.ContainsRune(these, rune(s.NextChar()))
+        return strings.ContainsRune(these, s.NextChar())
     })
 }
 
 func (s *SourceFile) ReadCharsUntil(until string) string {
     return s.readWhile(func() bool {
-        return !strings.ContainsRune(until, rune(s.NextChar()))
+        return !strings.ContainsRune(until, s.NextChar())
     })
 }
 
@@ -71,8 +71,8 @@ func (s *SourceFile) readWhile(predicate func() bool) string {
     s.buffer.Reset()
 
     for !s.AtEnd() && predicate() {
-        s.buffer.WriteByte(s.NextChar())
-        s.charPos++
+        s.buffer.WriteRune(s.NextChar())
+        s.charPos += uint64(1)
     }
 
     return s.buffer.String()
