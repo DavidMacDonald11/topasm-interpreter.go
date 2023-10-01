@@ -19,6 +19,8 @@ const (
     None Kind = "?"
 )
 
+func (k Kind) String() string { return string(k) }
+
 type Token struct {
     Kind Kind
     Str string

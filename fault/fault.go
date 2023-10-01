@@ -18,12 +18,11 @@ type Positioner interface {
 type Fault struct {
     Pos Position
     Msg string
-    IsFail bool
 }
 
-func NewFault(p Positioner, label string, msg string, isFail bool) *Fault {
+func New(p Positioner, label string, msg string) *Fault {
     msg = fmt.Sprintf("%s Error: %s", label, msg)
-    return &Fault{p.Position(), msg, isFail}
+    return &Fault{p.Position(), msg}
 }
 
 func (f *Fault) Print() {

@@ -11,25 +11,23 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type Token = token.Token
 type Fault = fault.Fault
+type Token = token.Token
 
-func TokenizeFile(path string) ([]Token, []Fault) {
+func TokenizeFile(path string) ([]Token, *Fault) {
     file := NewSrcFile(path)
     tokens := []Token{}
-    faults := []Fault{}
 
     for !file.AtEnd() {
         saveNewline := len(tokens) > 0 && !tokens[len(tokens) - 1].Has("\n")
         result := makeToken(file, saveNewline)
 
         if result.HasToken() { tokens = append(tokens, *result.Token) }
-        if result.HasFault() { faults = append(faults, *result.Fault) }
-        if result.Failed() { break }
+        if result.HasFault() { return tokens, result.Fault }
     }
 
     tokens = append(tokens, *token.New(token.Punc, grammar.EOF, file.Pos))
-    return tokens, faults
+    return tokens, nil
 }
 
 func makeToken(file *SrcFile, saveNewline bool) *token.Result {
@@ -55,7 +53,7 @@ func makeToken(file *SrcFile, saveNewline bool) *token.Result {
     }
 
     tok := token.New(token.None, file.ReadChar(), file.Pos)
-    return token.FailureResult(tok, "Lexing", "Unrecognized symbol")
+    return token.FaultResult(tok, "Lexing", "Unrecognized symbol")
 }
 
 func makeNewline(file *SrcFile, saveNewline bool) *token.Result {
