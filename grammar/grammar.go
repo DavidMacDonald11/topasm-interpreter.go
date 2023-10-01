@@ -2,12 +2,12 @@ package grammar
 
 const (
     EOF = ""
+    Digits = "0123456789"
     Letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-    Digits = "01234567890"
     Puncs = ":#"
 )
 
-func Keywords() []string {
+func Keys() []string {
     return []string {
         "move", "into", "add", "sub", "from",
         "printc", "printi",

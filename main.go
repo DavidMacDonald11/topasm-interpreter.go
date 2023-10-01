@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 	"topasm/lexer"
-    "topasm/parser"
+	"topasm/util"
 )
 
 func main() {
@@ -14,12 +14,9 @@ func main() {
     tokens, faults := lexer.TokenizeFile(filePath)
 
     println("Created tokens:")
-    println(tokens.String())
+    println(util.Join(tokens, ", ", "[", "]"))
 
-    faults.Print(filePath)
-
-    node := parser.ParseTokens(tokens)
-
-    println("Created tree:")
-    println(node.String())
+    for _, fault := range faults {
+        fault.Print()
+    }
 }

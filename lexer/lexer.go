@@ -2,49 +2,37 @@ package lexer
 
 import (
 	"strings"
-	"topasm/core"
-	"topasm/core/grammar"
-	"topasm/core/token"
-	"topasm/io"
-	"topasm/lexer/result"
+	"topasm/fault"
+	"topasm/grammar"
+	"topasm/token"
+	"topasm/util"
 	"unicode"
+
 	"golang.org/x/exp/slices"
 )
 
-type File = io.SourceFile
 type Token = token.Token
-type Tokens = token.Tokens
-type Fault = core.Fault
-type Faults = core.Faults
-type Result = result.Result
+type Fault = fault.Fault
 
-func TokenizeFile(filePath string) (Tokens, Faults) {
-    file := io.NewSourceFile(filePath)
-    tokens := Tokens{}
-    faults := Faults{}
+func TokenizeFile(path string) ([]Token, []Fault) {
+    file := NewSrcFile(path)
+    tokens := []Token{}
+    faults := []Fault{}
 
     for !file.AtEnd() {
-        saveNextNewline := len(tokens) > 0 && !tokens.Last().Has("\n")
-        result := makeToken(&file, saveNextNewline)
+        saveNewline := len(tokens) > 0 && !tokens[len(tokens) - 1].Has("\n")
+        result := makeToken(file, saveNewline)
 
         if result.HasToken() { tokens = append(tokens, *result.Token) }
         if result.HasFault() { faults = append(faults, *result.Fault) }
         if result.Failed() { break }
     }
 
-    tokens = append(tokens, newToken(&file, token.Punc, grammar.EOF))
+    tokens = append(tokens, *token.New(token.Punc, grammar.EOF, file.Pos))
     return tokens, faults
 }
 
-func newToken(file *File, k token.Kind, s string) Token {
-    return token.NewToken(k, s, file.CharPos() - uint64(len(s)))
-}
-
-func newFaultToken(file *File, s string) Token {
-    return newToken(file, token.None, s)
-}
-
-func makeToken(file *File, saveNextNewline bool) Result {
+func makeToken(file *SrcFile, saveNewline bool) *token.Result {
     for unicode.IsSpace(file.NextChar()) {
         if file.NextChar() == '\n' { break }
         file.ReadChar()
@@ -55,37 +43,42 @@ func makeToken(file *File, saveNextNewline bool) Result {
     switch {
     case next == ';':
         file.ReadCharsUntil("\n")
-        return result.None()
+        return token.NoneResult()
     case next == '\n':
-        token := newToken(file, token.Punc, file.ReadChar())
-        return core.IfElse(saveNextNewline, result.Token(token), result.None())
+        return makeNewline(file, saveNewline)
     case strings.ContainsRune(grammar.Digits, next):
         return makeNum(file)
     case strings.ContainsRune(grammar.Letters, next):
         return makeIdOrKey(file)
     case strings.ContainsRune(grammar.Puncs, next):
         return makePunc(file)
-    default:
-        token := newFaultToken(file, file.ReadChar())
-        return result.Failure(token, "Unrecognized symbol")
     }
+
+    tok := token.New(token.None, file.ReadChar(), file.Pos)
+    return token.FailureResult(tok, "Lexing", "Unrecognized symbol")
 }
 
-func makeNum(file *File) Result {
+func makeNewline(file *SrcFile, saveNewline bool) *token.Result {
+    tok := token.New(token.Punc, file.ReadChar(), file.Pos)
+
+    if !saveNewline { return token.NoneResult() }
+    return token.TokenResult(tok)
+}
+
+func makeNum(file *SrcFile) *token.Result {
     str := file.ReadTheseChars(grammar.Digits)
-    token := newToken(file, token.Num, str)
-    return result.Token(token)
+    tok := token.New(token.Num, str, file.Pos)
+    return token.TokenResult(tok)
 }
 
-func makeIdOrKey(file *File) Result {
+func makeIdOrKey(file *SrcFile) *token.Result {
     str := file.ReadTheseChars(grammar.Letters)
-    isKeyword := slices.Contains(grammar.Keywords(), str)
-    kind := core.IfElse(isKeyword, token.Key, token.Id)
-
-    return result.Token(newToken(file, kind, str))
+    isKey := slices.Contains(grammar.Keys(), str)
+    kind := util.IfElse(isKey, token.Key, token.Id)
+    return token.TokenResult(token.New(kind, str, file.Pos))
 }
 
-func makePunc(file *File) Result {
-    token := newToken(file, token.Punc, file.ReadChar())
-    return result.Token(token)
+func makePunc(file *SrcFile) *token.Result {
+    tok := token.New(token.Punc, file.ReadChar(), file.Pos)
+    return token.TokenResult(tok)
 }
