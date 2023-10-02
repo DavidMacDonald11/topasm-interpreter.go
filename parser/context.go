@@ -23,7 +23,7 @@ func (c *Context) Next() *token.Token {
 
 func (c *Context) Take() *token.Token {
     tok := c.Next()
-    c.n += 1
+    if c.n < len(c.tokens) - 1 { c.n += 1 }
     return tok
 }
 
