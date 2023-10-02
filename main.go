@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"topasm/interpreter"
 	"topasm/lexer"
 	"topasm/parser"
 	"topasm/util"
@@ -26,6 +27,13 @@ func main() {
 
     println("Created Tree:")
     println(tree.String())
+
+    if fault != nil {
+        fault.Print()
+        return
+    }
+
+    fault = interpreter.InterpretTree(tree)
 
     if fault != nil {
         fault.Print()
