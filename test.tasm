@@ -3,4 +3,3 @@ move 69 into #1
 
 printc #0
 printc #1
-printc 10

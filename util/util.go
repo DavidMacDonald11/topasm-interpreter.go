@@ -9,6 +9,10 @@ func IfElse[T any](c bool, val1 T, val2 T) T {
     if c { return val1 } else { return val2 }
 }
 
+func NewCopy[T any](t T) *T {
+    return &t
+}
+
 func Join[T fmt.Stringer](s []T, sep string, pre string, post string) string {
     builder := strings.Builder{}
     builder.WriteString(pre)

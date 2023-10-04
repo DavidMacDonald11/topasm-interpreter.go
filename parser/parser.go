@@ -7,24 +7,20 @@ import (
 	"topasm/token"
 )
 
-type Fault = fault.Fault
-type Token = token.Token
-type Node = node.Node
-
-func ParseTokens(tokens []Token) (*Node, *Fault) {
+func ParseTokens(tokens []token.Token) node.File {
     ctx := NewContext(tokens)
-    b := node.NewBuilder("File")
+    nodes := []node.Node{}
 
     for !ctx.Next().Has(grammar.EOF) {
-        b.AddResult(parseIns(ctx))
-        b.Add(ctx.ExpectingHas("\n", grammar.EOF))
+        ins := parseIns(&ctx)
+        lf := ctx.ExpectingHas("\n", grammar.EOF)
+        nodes = append(nodes, ins, lf)
     }
 
-    r := b.Result()
-    return r.Node, r.Fault
+    return node.NewFile(nodes)
 }
 
-func parseIns(ctx *Context) *node.Result {
+func parseIns(ctx *Context) node.Node {
     switch {
     case ctx.Next().Has("move"): return parseMove(ctx)
     case ctx.Next().Has("add"): return parseAdd(ctx)
@@ -33,70 +29,59 @@ func parseIns(ctx *Context) *node.Result {
     case ctx.Next().Has("printi"): return parsePrinti(ctx)
     }
 
-    b := node.NewBuilder("Bad Node")
-    b.AddChild(ctx.Take())
-    n := b.Result().Node
-
-    return node.FaultResult(n, "Parsing", "Unexpected token")
+    err := node.NewError(ctx.Take())
+    fault.Fail(err, "Parsing", "Unexpected token")
+    return err
 }
 
-func parseMove(ctx *Context) *node.Result {
+func parseMove(ctx *Context) node.Node {
     return parseBinary(ctx, "move", "into")
 }
 
-func parseAdd(ctx *Context) *node.Result {
+func parseAdd(ctx *Context) node.Node {
     return parseBinary(ctx, "add", "into")
 }
 
-func parseSub(ctx *Context) *node.Result {
+func parseSub(ctx *Context) node.Node {
     return parseBinary(ctx, "sub", "from")
 }
 
-func parsePrintc(ctx *Context) *node.Result {
+func parsePrintc(ctx *Context) node.Node {
     return parseUnary(ctx, "printc")
 }
 
-func parsePrinti(ctx *Context) *node.Result {
+func parsePrinti(ctx *Context) node.Node {
     return parseUnary(ctx, "printi")
 }
 
-func parseUnary(ctx *Context, ins string) *node.Result {
-    b := node.NewBuilder("Unary Instruction")
+func parseUnary(ctx *Context, ins string) node.UnaryIns {
+    insTok := ctx.ExpectingHas(ins)
+    reg := parseReg(ctx)
 
-    b.Add(ctx.ExpectingHas(ins))
-    b.AddResult(parseValue(ctx))
-
-    return b.Result()
+    return node.NewUnaryIns(insTok, reg)
 }
 
-func parseBinary(ctx *Context, ins string, prep string) *node.Result {
-    b := node.NewBuilder("Binary Instruction")
+func parseBinary(ctx *Context, ins string, prep string) node.BinaryIns {
+    insTok := ctx.ExpectingHas(ins)
+    val := parseValue(ctx)
+    prepTok := ctx.ExpectingHas(prep)
+    reg := parseReg(ctx)
 
-    b.Add(ctx.ExpectingHas(ins))
-    b.AddResult(parseValue(ctx))
-    b.Add(ctx.ExpectingHas(prep))
-    b.AddResult(parseReg(ctx))
-
-    return b.Result()
+    return node.NewBinaryIns(insTok, val, prepTok, reg)
 }
 
-func parseValue(ctx *Context) *node.Result {
+func parseValue(ctx *Context) node.Node {
     if ctx.Next().Has("#") { return parseReg(ctx) }
     return parseNum(ctx)
 }
 
-func parseReg(ctx *Context) *node.Result {
-    b := node.NewBuilder("Reg")
-
-    b.Add(ctx.ExpectingHas("#"))
-    b.Add(ctx.ExpectingOf(token.Num))
-
-    return b.Result()
+func parseReg(ctx *Context) node.Reg {
+    hash := ctx.ExpectingHas("#")
+    num := ctx.ExpectingOf(token.Num)
+    return node.NewReg(hash, num)
 }
 
-func parseNum(ctx *Context) *node.Result {
-    b := node.NewBuilder("Num")
-    b.Add(ctx.ExpectingOf(token.Num))
-
-    return b.Result()
+func parseNum(ctx *Context) node.Num {
+    num := ctx.ExpectingOf(token.Num)
+    return node.NewNum(num)
 }

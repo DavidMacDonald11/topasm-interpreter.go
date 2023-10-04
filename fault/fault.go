@@ -1,30 +1,22 @@
 package fault
 
-import "fmt"
+import (
+	"log"
+)
 
 type Position struct {
-    Start int
-    End int
+    Start, End int
 }
 
-func NewPosition(start int, end int) *Position {
-    return &Position{Start: start, End: end}
+func NewPosition(start, end int) Position {
+    return Position{start, end}
 }
 
 type Positioner interface {
     Position() Position
 }
 
-type Fault struct {
-    Pos Position
-    Msg string
-}
-
-func New(p Positioner, label string, msg string) *Fault {
-    msg = fmt.Sprintf("%s Error: %s", label, msg)
-    return &Fault{p.Position(), msg}
-}
-
-func (f *Fault) Print() {
-    fmt.Printf("%s (at %d:%d)\n", f.Msg, f.Pos.Start, f.Pos.End)
+func Fail(p Positioner, label string, msg string) {
+    pos := p.Position()
+    log.Fatalf("%s Error: %s (at %d:%d)\n", label, msg, pos.Start, pos.End)
 }

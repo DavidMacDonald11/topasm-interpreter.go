@@ -11,72 +11,57 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type Fault = fault.Fault
-type Token = token.Token
+func TokenizeFile(path string) []token.Token {
+    file := MustNewSrcFile(path)
+    tokens := []token.Token{}
 
-func TokenizeFile(path string) ([]Token, *Fault) {
-    file := NewSrcFile(path)
-    tokens := []Token{}
-
-    for !file.AtEnd() {
+    for {
         saveNewline := len(tokens) > 0 && !tokens[len(tokens) - 1].Has("\n")
-        result := makeToken(file, saveNewline)
+        tok := makeToken(&file)
 
-        if result.HasToken() { tokens = append(tokens, *result.Token) }
-        if result.HasFault() { return tokens, result.Fault }
+        if saveNewline || !tok.Has("\n") { tokens = append(tokens, tok) }
+        if tok.Has(grammar.EOF) { return tokens }
     }
-
-    tokens = append(tokens, *token.New(token.Punc, grammar.EOF, file.Pos))
-    return tokens, nil
 }
 
-func makeToken(file *SrcFile, saveNewline bool) *token.Result {
-    for unicode.IsSpace(file.NextChar()) {
-        if file.NextChar() == '\n' { break }
-        file.ReadChar()
-    }
-
+func makeToken(file *SrcFile) token.Token {
     next := file.NextChar()
 
     switch {
-    case next == ';':
-        file.ReadCharsUntil("\n")
-        return token.NoneResult()
-    case next == '\n':
-        return makeNewline(file, saveNewline)
+    case next == '\u0000':
+        fallthrough
+    case strings.ContainsRune(grammar.Puncs, next):
+        return makePunc(file)
     case strings.ContainsRune(grammar.Digits, next):
         return makeNum(file)
     case strings.ContainsRune(grammar.Letters, next):
         return makeIdOrKey(file)
-    case strings.ContainsRune(grammar.Puncs, next):
-        return makePunc(file)
+    case next == ';':
+        file.ReadCharsUntil("\n")
+        return makeToken(file)
+    case unicode.IsSpace(next):
+        file.ReadChar()
+        return makeToken(file)
     }
 
     tok := token.New(token.None, file.ReadChar(), file.Pos)
-    return token.FaultResult(tok, "Lexing", "Unrecognized symbol")
+    fault.Fail(tok, "Lexing", "Unrecognized symbol")
+    return tok
 }
 
-func makeNewline(file *SrcFile, saveNewline bool) *token.Result {
-    tok := token.New(token.Punc, file.ReadChar(), file.Pos)
-
-    if !saveNewline { return token.NoneResult() }
-    return token.TokenResult(tok)
+func makePunc(file *SrcFile) token.Token {
+    str := util.IfElse(file.AtEnd(), grammar.EOF, file.ReadChar())
+    return token.New(token.Punc, str, file.Pos)
 }
 
-func makeNum(file *SrcFile) *token.Result {
+func makeNum(file *SrcFile) token.Token {
     str := file.ReadTheseChars(grammar.Digits)
-    tok := token.New(token.Num, str, file.Pos)
-    return token.TokenResult(tok)
+    return token.New(token.Num, str, file.Pos)
 }
 
-func makeIdOrKey(file *SrcFile) *token.Result {
+func makeIdOrKey(file *SrcFile) token.Token {
     str := file.ReadTheseChars(grammar.Letters)
     isKey := slices.Contains(grammar.Keys(), str)
     kind := util.IfElse(isKey, token.Key, token.Id)
-    return token.TokenResult(token.New(kind, str, file.Pos))
-}
-
-func makePunc(file *SrcFile) *token.Result {
-    tok := token.New(token.Punc, file.ReadChar(), file.Pos)
-    return token.TokenResult(tok)
+    return token.New(kind, str, file.Pos)
 }

@@ -4,7 +4,7 @@ const (
     EOF = ""
     Digits = "0123456789"
     Letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-    Puncs = ":#"
+    Puncs = "\n:#"
 )
 
 func Keys() []string {

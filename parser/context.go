@@ -13,33 +13,34 @@ type Context struct {
     n int
 }
 
-func NewContext(tokens []token.Token) *Context {
-    return &Context{tokens, 0}
+func NewContext(tokens []token.Token) Context {
+    return Context{tokens, 0}
 }
 
-func (c *Context) Next() *token.Token {
-    return &c.tokens[c.n]
+func (c Context) Next() token.Token {
+    return c.tokens[c.n]
 }
 
-func (c *Context) Take() *token.Token {
+func (c *Context) Take() token.Token {
     tok := c.Next()
     if c.n < len(c.tokens) - 1 { c.n += 1 }
     return tok
 }
 
-func (c *Context) ExpectingOf(kinds ...token.Kind) (*Token, *Fault) {
+func (c *Context) ExpectingOf(kinds ...token.Kind) token.Token {
     tok := c.Take()
-    if tok.Of(kinds...) { return tok, nil }
+    if tok.Of(kinds...) { return tok }
 
     list := util.Join(kinds, ", ", "[", "]")
     msg := fmt.Sprintf("Expecting one of kind %s", list)
 
-    return tok, fault.New(tok, "Parsing", msg)
+    fault.Fail(tok, "Parsing", msg)
+    return tok
 }
 
-func (c *Context) ExpectingHas(strs ...string) (*Token, *Fault) {
+func (c *Context) ExpectingHas(strs ...string) token.Token {
     tok := c.Take()
-    if tok.Has(strs...) { return tok, nil }
+    if tok.Has(strs...) { return tok }
 
     strs = util.Map(strs, func(it string) string {
         return strings.ReplaceAll(it, "\n", "\\n")
@@ -48,5 +49,6 @@ func (c *Context) ExpectingHas(strs ...string) (*Token, *Fault) {
     list := util.JoinStr(strs, ", ", "[", "]")
     msg := fmt.Sprintf("Expecting one of %s", list)
 
-    return tok, fault.New(tok, "Parsing", msg)
+    fault.Fail(tok, "Parsing", msg)
+    return tok
 }

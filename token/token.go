@@ -27,19 +27,19 @@ type Token struct {
     Pos int
 }
 
-func New(k Kind, s string, pos int) *Token {
-    return &Token{Kind: k, Str: s, Pos: pos}
+func New(kind Kind, str string, pos int) Token {
+    return Token{kind, str, pos}
 }
 
-func (t *Token) Position() fault.Position {
-    return *fault.NewPosition(t.Pos - len(t.Str) + 1, t.Pos)
+func (t Token) Position() fault.Position {
+    return fault.Position{Start: t.Pos - len(t.Str) + 1, End: t.Pos}
 }
 
-func (t *Token) Of(kinds ...Kind) bool {
+func (t Token) Of(kinds ...Kind) bool {
     return slices.Contains(kinds, t.Kind)
 }
 
-func (t *Token) Has(strs ...string) bool {
+func (t Token) Has(strs ...string) bool {
     return slices.Contains(strs, t.Str)
 }
 
@@ -47,4 +47,8 @@ func (t Token) String() string {
     escapedStr := strings.ReplaceAll(t.Str, "\n", "\\n")
     str := util.IfElse(t.Str == "", "EOF", escapedStr)
     return fmt.Sprintf("%s'%s'", t.Kind, str)
+}
+
+func (t Token) NodeString(prefix string) string {
+    return t.String()
 }

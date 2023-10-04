@@ -13,24 +13,24 @@ type SrcFile struct {
     Pos int
 }
 
-func NewSrcFile(path string) *SrcFile {
+func MustNewSrcFile(path string) SrcFile {
     file, err := os.ReadFile(path)
     if err != nil { log.Fatal(err) }
 
-    return &SrcFile {
+    return SrcFile {
         contents: string(file),
         buf: strings.Builder{},
         Pos: 0,
     }
 }
 
-func (s *SrcFile) AtEnd() bool { return s.Pos == len(s.contents) - 1 }
+func (s SrcFile) AtEnd() bool { return s.Pos == len(s.contents) - 1 }
 
-func (s *SrcFile) NextChar() rune {
+func (s SrcFile) NextChar() rune {
     return util.IfElse(s.AtEnd(), '\u0000', rune(s.Peek(1)[0]))
 }
 
-func (s *SrcFile) Peek(n int) string {
+func (s SrcFile) Peek(n int) string {
     n += s.Pos - 1
     return util.IfElse(n >= len(s.contents), "", s.contents[n:])
 }
