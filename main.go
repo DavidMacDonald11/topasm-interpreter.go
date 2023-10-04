@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"topasm/interpreter"
 	"topasm/lexer"
 	"topasm/parser"
 	"topasm/util"
@@ -21,4 +22,7 @@ func main() {
 
     println("Created Tree:")
     println(tree.String())
+
+    println("Result:\n")
+    interpreter.InterpretTree(tree)
 }

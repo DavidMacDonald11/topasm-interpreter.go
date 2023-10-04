@@ -22,36 +22,25 @@ func ParseTokens(tokens []token.Token) node.File {
 
 func parseIns(ctx *Context) node.Node {
     switch {
-    case ctx.Next().Has("move"): return parseMove(ctx)
-    case ctx.Next().Has("add"): return parseAdd(ctx)
-    case ctx.Next().Has("sub"): return parseSub(ctx)
-    case ctx.Next().Has("printc"): return parsePrintc(ctx)
-    case ctx.Next().Has("printi"): return parsePrinti(ctx)
+    case ctx.Next().Has("move"):
+        return parseBinary(ctx, "move", "into")
+    case ctx.Next().Has("add"):
+        return parseBinary(ctx, "add", "into")
+    case ctx.Next().Has("sub"):
+        return parseBinary(ctx, "sub", "from")
+    case ctx.Next().Has("inc"):
+        return parseUnary(ctx, "inc")
+    case ctx.Next().Has("dec"):
+        return parseUnary(ctx, "dec")
+    case ctx.Next().Has("printc"):
+        return parseUnary(ctx, "printc")
+    case ctx.Next().Has("printi"):
+        return parseUnary(ctx, "printi")
     }
 
     err := node.NewError(ctx.Take())
     fault.Fail(err, "Parsing", "Unexpected token")
     return err
-}
-
-func parseMove(ctx *Context) node.Node {
-    return parseBinary(ctx, "move", "into")
-}
-
-func parseAdd(ctx *Context) node.Node {
-    return parseBinary(ctx, "add", "into")
-}
-
-func parseSub(ctx *Context) node.Node {
-    return parseBinary(ctx, "sub", "from")
-}
-
-func parsePrintc(ctx *Context) node.Node {
-    return parseUnary(ctx, "printc")
-}
-
-func parsePrinti(ctx *Context) node.Node {
-    return parseUnary(ctx, "printi")
 }
 
 func parseUnary(ctx *Context, ins string) node.UnaryIns {

@@ -1,5 +1,17 @@
-move 72 into #0
-move 69 into #1
-
+move 72 into #0 ; H
 printc #0
+
+inc #0 ; I
+printc #0
+
+move 33 into #1 ; !
 printc #1
+
+dec #1 ; space
+printc #1
+
+sub 4 from #0 ; 69
+printi #0
+
+move 10 into #2 ; \n
+printc #2
