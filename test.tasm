@@ -1,17 +1,20 @@
-move 72 into #0 ; H
-printc #0
+move 72 into #0
+call printc ; 'H'
 
-inc #0 ; I
-printc #0
+inc #0
+call printc ; 'I'
 
-move 33 into #1 ; !
-printc #1
+move 33 into #0
+call printc ; '!'
 
-dec #1 ; space
-printc #1
+dec #0
+call printc ; ' '
 
-sub 4 from #0 ; 69
-printi #0
+move 72 into #0
+dec #0
+sub 4 from #0
+call printi ; '69'
 
-move 10 into #2 ; \n
-printc #2
+move 10 into #2
+move #2 into #0
+call printc ; '\n'

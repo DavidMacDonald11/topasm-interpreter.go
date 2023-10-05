@@ -10,6 +10,6 @@ const (
 func Keys() []string {
     return []string {
         "move", "into", "add", "sub", "from",
-        "inc", "dec", "printc", "printi",
+        "inc", "dec", "call",
     }
 }

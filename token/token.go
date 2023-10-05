@@ -3,7 +3,6 @@ package token
 import (
 	"fmt"
 	"strings"
-	"topasm/fault"
 	"topasm/util"
 
 	"golang.org/x/exp/slices"
@@ -24,15 +23,15 @@ func (k Kind) String() string { return string(k) }
 type Token struct {
     Kind Kind
     Str string
-    Pos int
+    Line int
 }
 
 func New(kind Kind, str string, pos int) Token {
     return Token{kind, str, pos}
 }
 
-func (t Token) Position() fault.Position {
-    return fault.Position{Start: t.Pos - len(t.Str) + 1, End: t.Pos}
+func (t Token) Position() int {
+    return t.Line
 }
 
 func (t Token) Of(kinds ...Kind) bool {
@@ -49,6 +48,6 @@ func (t Token) String() string {
     return fmt.Sprintf("%s'%s'", t.Kind, str)
 }
 
-func (t Token) NodeString(prefix string) string {
+func (t Token) RecString(prefix string) string {
     return t.String()
 }

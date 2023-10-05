@@ -1,15 +1,16 @@
 package parser
 
 import (
-	"topasm/fault"
+	"strings"
 	"topasm/grammar"
 	"topasm/node"
 	"topasm/token"
+	"topasm/util"
 )
 
-func ParseTokens(tokens []token.Token) node.File {
+func ParseTokens(tokens []token.Token) node.Node {
     ctx := NewContext(tokens)
-    nodes := []node.Node{}
+    nodes := []node.RecStringer{}
 
     for !ctx.Next().Has(grammar.EOF) {
         ins := parseIns(&ctx)
@@ -17,46 +18,57 @@ func ParseTokens(tokens []token.Token) node.File {
         nodes = append(nodes, ins, lf)
     }
 
-    return node.NewFile(nodes)
+    return node.New("File", nodes...)
 }
 
 func parseIns(ctx *Context) node.Node {
     switch {
+    case ctx.Next().Of(token.Id):
+        return parseLabel(ctx)
+    case ctx.Next().Has("call"):
+        return parseCall(ctx)
     case ctx.Next().Has("move"):
-        return parseBinary(ctx, "move", "into")
+        return parseInsValReg(ctx, "Move", "into")
     case ctx.Next().Has("add"):
-        return parseBinary(ctx, "add", "into")
+        return parseInsValReg(ctx, "Add", "into")
     case ctx.Next().Has("sub"):
-        return parseBinary(ctx, "sub", "from")
+        return parseInsValReg(ctx, "Sub", "from")
     case ctx.Next().Has("inc"):
-        return parseUnary(ctx, "inc")
+        return parseInsReg(ctx, "Inc")
     case ctx.Next().Has("dec"):
-        return parseUnary(ctx, "dec")
-    case ctx.Next().Has("printc"):
-        return parseUnary(ctx, "printc")
-    case ctx.Next().Has("printi"):
-        return parseUnary(ctx, "printi")
+        return parseInsReg(ctx, "Dec")
     }
 
-    err := node.NewError(ctx.Take())
-    fault.Fail(err, "Parsing", "Unexpected token")
+    err := node.New("?", ctx.Take())
+    util.Fail(err, "Unexpected token")
     return err
 }
 
-func parseUnary(ctx *Context, ins string) node.UnaryIns {
-    insTok := ctx.ExpectingHas(ins)
-    reg := parseReg(ctx)
-
-    return node.NewUnaryIns(insTok, reg)
+func parseLabel(ctx *Context) node.Node {
+    id := ctx.ExpectingOf(token.Id)
+    colon := ctx.ExpectingHas(":")
+    return node.New("Label", id, colon)
 }
 
-func parseBinary(ctx *Context, ins string, prep string) node.BinaryIns {
-    insTok := ctx.ExpectingHas(ins)
+func parseCall(ctx *Context) node.Node {
+    ins := ctx.ExpectingHas("call")
+    id := ctx.ExpectingOf(token.Id)
+    return node.New("Call", ins, id)
+}
+
+func parseInsReg(ctx *Context, name string) node.Node {
+    ins := ctx.ExpectingHas(strings.ToLower(name))
+    reg := parseReg(ctx)
+    return node.New(name, ins, reg)
+}
+
+func parseInsValReg(ctx *Context, name string, prep string) node.Node {
+    ins := ctx.ExpectingHas(strings.ToLower(name))
     val := parseValue(ctx)
-    prepTok := ctx.ExpectingHas(prep)
+    p := ctx.ExpectingHas(prep)
     reg := parseReg(ctx)
 
-    return node.NewBinaryIns(insTok, val, prepTok, reg)
+    return node.New(name, ins, val, p, reg)
 }
 
 func parseValue(ctx *Context) node.Node {
@@ -64,13 +76,13 @@ func parseValue(ctx *Context) node.Node {
     return parseNum(ctx)
 }
 
-func parseReg(ctx *Context) node.Reg {
+func parseReg(ctx *Context) node.Node {
     hash := ctx.ExpectingHas("#")
     num := ctx.ExpectingOf(token.Num)
-    return node.NewReg(hash, num)
+    return node.New("Reg", hash, num)
 }
 
-func parseNum(ctx *Context) node.Num {
+func parseNum(ctx *Context) node.Node {
     num := ctx.ExpectingOf(token.Num)
-    return node.NewNum(num)
+    return node.New("Num", num)
 }

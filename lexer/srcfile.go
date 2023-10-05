@@ -10,28 +10,30 @@ import (
 type SrcFile struct {
     contents string
     buf strings.Builder
-    Pos int
+    pos int
+    Line int
 }
 
-func MustNewSrcFile(path string) SrcFile {
+func NewSrcFile(path string) SrcFile {
     file, err := os.ReadFile(path)
     if err != nil { log.Fatal(err) }
 
     return SrcFile {
         contents: string(file),
         buf: strings.Builder{},
-        Pos: 0,
+        pos: 0,
+        Line: 1,
     }
 }
 
-func (s SrcFile) AtEnd() bool { return s.Pos == len(s.contents) - 1 }
+func (s SrcFile) AtEnd() bool { return s.pos == len(s.contents) - 1 }
 
 func (s SrcFile) NextChar() rune {
     return util.IfElse(s.AtEnd(), '\u0000', rune(s.Peek(1)[0]))
 }
 
 func (s SrcFile) Peek(n int) string {
-    n += s.Pos - 1
+    n += s.pos - 1
     return util.IfElse(n >= len(s.contents), "", s.contents[n:])
 }
 
@@ -59,8 +61,11 @@ func (s *SrcFile) readWhile(predicate func() bool) string {
     s.buf.Reset()
 
     for !s.AtEnd() && predicate() {
-        s.buf.WriteRune(s.NextChar())
-        s.Pos += 1
+        c := s.NextChar()
+        if c == '\n' { s.Line += 1 }
+
+        s.buf.WriteRune(c)
+        s.pos += 1
     }
 
     return s.buf.String()

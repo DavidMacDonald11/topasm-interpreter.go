@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"topasm/interpreter"
@@ -23,6 +24,6 @@ func main() {
     println("Created Tree:")
     println(tree.String())
 
-    println("Result:\n")
+    fmt.Print("\nResult:\n")
     interpreter.InterpretTree(tree)
 }

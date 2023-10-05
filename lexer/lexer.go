@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"strings"
-	"topasm/fault"
 	"topasm/grammar"
 	"topasm/token"
 	"topasm/util"
@@ -12,7 +11,7 @@ import (
 )
 
 func TokenizeFile(path string) []token.Token {
-    file := MustNewSrcFile(path)
+    file := NewSrcFile(path)
     tokens := []token.Token{}
 
     for {
@@ -44,24 +43,24 @@ func makeToken(file *SrcFile) token.Token {
         return makeToken(file)
     }
 
-    tok := token.New(token.None, file.ReadChar(), file.Pos)
-    fault.Fail(tok, "Lexing", "Unrecognized symbol")
+    tok := token.New(token.None, file.ReadChar(), file.Line)
+    util.Fail(tok, "Unrecognized symbol")
     return tok
 }
 
 func makePunc(file *SrcFile) token.Token {
     str := util.IfElse(file.AtEnd(), grammar.EOF, file.ReadChar())
-    return token.New(token.Punc, str, file.Pos)
+    return token.New(token.Punc, str, file.Line)
 }
 
 func makeNum(file *SrcFile) token.Token {
     str := file.ReadTheseChars(grammar.Digits)
-    return token.New(token.Num, str, file.Pos)
+    return token.New(token.Num, str, file.Line)
 }
 
 func makeIdOrKey(file *SrcFile) token.Token {
     str := file.ReadTheseChars(grammar.Letters)
     isKey := slices.Contains(grammar.Keys(), str)
     kind := util.IfElse(isKey, token.Key, token.Id)
-    return token.New(kind, str, file.Pos)
+    return token.New(kind, str, file.Line)
 }

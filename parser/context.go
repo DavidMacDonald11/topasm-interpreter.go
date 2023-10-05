@@ -3,7 +3,6 @@ package parser
 import (
 	"fmt"
 	"strings"
-	"topasm/fault"
 	"topasm/token"
 	"topasm/util"
 )
@@ -34,7 +33,7 @@ func (c *Context) ExpectingOf(kinds ...token.Kind) token.Token {
     list := util.Join(kinds, ", ", "[", "]")
     msg := fmt.Sprintf("Expecting one of kind %s", list)
 
-    fault.Fail(tok, "Parsing", msg)
+    util.Fail(tok, msg)
     return tok
 }
 
@@ -49,6 +48,6 @@ func (c *Context) ExpectingHas(strs ...string) token.Token {
     list := util.JoinStr(strs, ", ", "[", "]")
     msg := fmt.Sprintf("Expecting one of %s", list)
 
-    fault.Fail(tok, "Parsing", msg)
+    util.Fail(tok, msg)
     return tok
 }
