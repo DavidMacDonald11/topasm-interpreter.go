@@ -10,6 +10,7 @@ const (
 func Keys() []string {
     return append([]string {
         "move", "into", "add", "sub", "from", "comp", "with",
+        "mul", "div",
         "inc", "dec", "call",
     }, JumpKeys()...)
 }

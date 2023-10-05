@@ -33,6 +33,10 @@ func (c *Context) SetReg(r node.Node, val uint64) {
     c.regs[reg] = val
 }
 
+func (c *Context) SetRegByNum(r int, val uint64) {
+    c.regs[r] = val
+}
+
 func (c *Context) GetReg(r node.Node) uint64 {
     reg := c.verifyReg(r)
     return c.regs[reg]
@@ -64,7 +68,7 @@ func (c *Context) Jump(label string) {
 
 func (c *Context) verifyReg(r node.Node) int {
     reg, err := strconv.Atoi(r.Children[1].(token.Token).Str)
-    if err != nil || reg + 1 >= len(c.regs) { util.Fail(r, "No such register") }
+    if err != nil || reg >= len(c.regs) { util.Fail(r, "No such register") }
 
     return reg
 }

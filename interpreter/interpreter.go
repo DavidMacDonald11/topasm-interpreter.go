@@ -24,6 +24,8 @@ func InterpretTree(tree node.Node) {
         case "comp": intComp(&ctx, ins)
         case "inc": intInc(&ctx, ins)
         case "dec": intDec(&ctx, ins)
+        case "mul": intMul(&ctx, ins)
+        case "div": intDiv(&ctx, ins)
         default: util.Fail(ins, "Unknown instruction")
         }
     }
@@ -104,6 +106,23 @@ func intDec(ctx *Context, ins node.Node) {
     reg := ins.Children[1].(node.Node)
     v := ctx.GetReg(reg)
     ctx.SetReg(reg, v - 1)
+}
+
+func intMul(ctx *Context, ins node.Node) {
+    reg := ins.Children[1].(node.Node)
+    n := ctx.GetRegByNum(0)
+    q := ctx.GetReg(reg)
+
+    ctx.SetRegByNum(0, n * q)
+}
+
+func intDiv(ctx *Context, ins node.Node) {
+    reg := ins.Children[1].(node.Node)
+    n := ctx.GetRegByNum(0)
+    q := ctx.GetReg(reg)
+
+    ctx.SetRegByNum(0, n / q)
+    ctx.SetRegByNum(1, n % q)
 }
 
 func intValue(ctx *Context, val node.Node) uint64 {

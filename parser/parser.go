@@ -40,6 +40,10 @@ func parseIns(ctx *Context) node.Node {
         return parseInsReg(ctx, "inc")
     case ctx.Next().Has("dec"):
         return parseInsReg(ctx, "dec")
+    case ctx.Next().Has("mul"):
+        return parseInsReg(ctx, "mul")
+    case ctx.Next().Has("div"):
+        return parseInsReg(ctx, "div")
     }
 
     err := node.New("?", ctx.Take())
