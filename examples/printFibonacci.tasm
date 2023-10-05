@@ -1,0 +1,20 @@
+; using #7 and #8 to hold last and current, respectively
+
+move 0 into #7
+move 1 into #8
+
+loop:
+    ; print current value and newline
+    move #8 into #0
+    call printi
+    move 10 into #0
+    call printc
+
+    ; last = current and current = current + last
+    move #8 into #6 ; temp value
+    add #7 into #8
+    move #6 into #7
+
+    ; loop while current is less than or equal to 610
+    comp #8 with 610
+    jumpLTE loop

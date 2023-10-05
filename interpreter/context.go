@@ -1,7 +1,9 @@
 package interpreter
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 	"topasm/node"
 	"topasm/token"
 	"topasm/util"
@@ -64,6 +66,23 @@ func (c *Context) GetLabel(label token.Token) string {
 
 func (c *Context) Jump(label string) {
     c.i = c.labels[label]
+}
+
+func (c Context) String() string {
+    b := strings.Builder{}
+    b.WriteRune('[')
+
+    for i, r := range c.regs {
+        b.WriteString(fmt.Sprintf("%d", r))
+        if i != len(c.regs) - 1 { b.WriteString(", ") }
+    }
+
+    b.WriteString("], eq: ")
+    b.WriteRune(util.IfElse(c.eqFlag, '1', '0'))
+    b.WriteString(", lt: ")
+    b.WriteRune(util.IfElse(c.ltFlag, '1', '0'))
+
+    return b.String()
 }
 
 func (c *Context) verifyReg(r node.Node) int {
