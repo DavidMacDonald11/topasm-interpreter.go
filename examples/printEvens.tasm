@@ -1,0 +1,37 @@
+    move 2 into #9 ; set dividend for later
+loop:
+    ; we are using #8 as our main value. All regs start at 0
+    inc #8
+
+    ; check if our main value is odd and don't print if it is
+    move #8 into #0
+    div #9
+    comp #1 with 0
+    jumpNE check
+
+    ; print the main value and a newline
+    move #8 into #0
+    call printi
+    move 10 into #0
+    call printc
+check:
+    ; keep looping while our main value is less than 20
+    comp #8 with 20
+    jumpLT loop
+
+; print 'G'
+move 71 into #0
+call printc
+
+; print "oo"
+move 111 into #0
+call printc
+call printc
+
+; print 'd'
+move 100 into #0
+call printc
+
+; print '\n'
+move 10 into #0
+call printc
