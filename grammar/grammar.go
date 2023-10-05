@@ -8,8 +8,14 @@ const (
 )
 
 func Keys() []string {
-    return []string {
-        "move", "into", "add", "sub", "from",
+    return append([]string {
+        "move", "into", "add", "sub", "from", "comp", "with",
         "inc", "dec", "call",
+    }, JumpKeys()...)
+}
+
+func JumpKeys() []string {
+    return []string {
+        "jump", "jumpNE", "jumpEQ", "jumpLT", "jumpGT", "jumpLTE", "jumpGTE",
     }
 }

@@ -11,6 +11,8 @@ type Context struct {
     i int
     regs [10]uint64
     labels map[string]int
+    eqFlag bool
+    ltFlag bool
 }
 
 func NewContext(tree node.Node) Context {
@@ -18,12 +20,12 @@ func NewContext(tree node.Node) Context {
 
     for i := 0; i * 2 < len(tree.Children); i++ {
         ins := tree.Children[i * 2].(node.Node)
-        if ins.Name != "Label" { continue }
+        if ins.Name != "label" { continue }
 
         labels[ins.Children[0].(token.Token).Str] = i
     }
 
-    return Context{0, [10]uint64{}, labels}
+    return Context{0, [10]uint64{}, labels, false, false}
 }
 
 func (c *Context) SetReg(r node.Node, val uint64) {
@@ -40,8 +42,24 @@ func (c *Context) GetRegByNum(r int) uint64 {
     return c.regs[r]
 }
 
-func (c *Context) Jump(label node.Node) {
+func (c *Context) Comp(n1 uint64, n2 uint64) {
+    c.eqFlag = (n1 == n2)
+    c.ltFlag = (n1 < n2)
+}
 
+func (c *Context) GetCompFlags() (bool, bool) {
+    return c.eqFlag, c.ltFlag
+}
+
+func (c *Context) GetLabel(label token.Token) string {
+    _, ok := c.labels[label.Str]
+    if !ok { util.Fail(label, "No such label") }
+
+    return label.Str
+}
+
+func (c *Context) Jump(label string) {
+    c.i = c.labels[label]
 }
 
 func (c *Context) verifyReg(r node.Node) int {

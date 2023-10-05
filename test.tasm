@@ -1,20 +1,24 @@
-move 72 into #0
-call printc ; 'H'
+loop:
+    inc #0
+    call printi
 
-inc #0
-call printc ; 'I'
+    move #0 into #1
+    move 10 into #0
+    call printc
+    move #1 into #0
 
-move 33 into #0
-call printc ; '!'
+    comp #0 with 10
+    jumpLT loop
 
-dec #0
-call printc ; ' '
+move 71 into #0
+call printc
 
-move 72 into #0
-dec #0
-sub 4 from #0
-call printi ; '69'
+move 111 into #0
+call printc
+call printc
 
-move 10 into #2
-move #2 into #0
-call printc ; '\n'
+move 100 into #0
+call printc
+
+move 10 into #0
+call printc

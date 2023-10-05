@@ -15,15 +15,35 @@ func InterpretTree(tree node.Node) {
         ins := tree.Children[ctx.i * 2].(node.Node)
 
         switch ins.Name {
-        case "Label": continue
-        case "Call": intCall(&ctx, ins)
-        case "Move": intMove(&ctx, ins)
-        case "Add": intAdd(&ctx, ins)
-        case "Sub": intSub(&ctx, ins)
-        case "Inc": intInc(&ctx, ins)
-        case "Dec": intDec(&ctx, ins)
+        case "label": continue
+        case "jump": intJump(&ctx, ins)
+        case "call": intCall(&ctx, ins)
+        case "move": intMove(&ctx, ins)
+        case "add": intAdd(&ctx, ins)
+        case "sub": intSub(&ctx, ins)
+        case "comp": intComp(&ctx, ins)
+        case "inc": intInc(&ctx, ins)
+        case "dec": intDec(&ctx, ins)
         default: util.Fail(ins, "Unknown instruction")
         }
+    }
+}
+
+func intJump(ctx *Context, ins node.Node) {
+    jump := ins.Children[0].(token.Token)
+    label := ins.Children[1].(token.Token)
+
+    l := ctx.GetLabel(label)
+    eq, lt := ctx.GetCompFlags()
+
+    switch jump.Str {
+    case "jump":
+    case "jumpNE": if !eq { ctx.Jump(l) }
+    case "jumpEQ": if eq { ctx.Jump(l) }
+    case "jumpLT": if lt { ctx.Jump(l) }
+    case "jumpGT": if !lt && !eq { ctx.Jump(l) }
+    case "jumpLTE": if lt || eq { ctx.Jump(l) }
+    case "jumpGTE": if !lt { ctx.Jump(l) }
     }
 }
 
@@ -64,6 +84,16 @@ func intSub(ctx *Context, ins node.Node) {
     ctx.SetReg(reg, v)
 }
 
+func intComp(ctx *Context, ins node.Node) {
+    val1 := ins.Children[1].(node.Node)
+    val2 := ins.Children[3].(node.Node)
+
+    v1 := intValue(ctx, val1)
+    v2 := intValue(ctx, val2)
+
+    ctx.Comp(v1, v2)
+}
+
 func intInc(ctx *Context, ins node.Node) {
     reg := ins.Children[1].(node.Node)
     v := ctx.GetReg(reg)
@@ -77,7 +107,7 @@ func intDec(ctx *Context, ins node.Node) {
 }
 
 func intValue(ctx *Context, val node.Node) uint64 {
-    if val.Name == "Reg" { return ctx.GetReg(val) }
+    if val.Name == "reg" { return ctx.GetReg(val) }
 
     s := val.Children[0].(token.Token).Str
     v, err := strconv.ParseUint(s, 10, 64)
