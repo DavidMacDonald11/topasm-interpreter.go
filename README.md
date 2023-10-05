@@ -82,7 +82,7 @@ Jumps to %id if the lt flag is not set.
 - Call: `call %id`
 Calls a built-in function called %id.
 Here is an exhaustive list of built-in functions:
-    - Print Char `printc`
+    - Print Char: `printc`
     Prints out the value of #0 converted to an ASCII character.
-    - Print Int `printi`
+    - Print Int: `printi`
     Prints out the value of #0.
