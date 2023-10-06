@@ -14,7 +14,10 @@ All characters after a semicolon are ignored as a comment.
 A register is a 64-bit unsigned integer used to hold intermediate values.
 There are 10 of them: `#0, #1, #2, ..., #9`.
 
-A value is defined to be either an integer literal (e.g. `307`) or a register.
+A value is defined to be one of the following:
+* An integer literal (e.g. `307`)
+* A character literal (e.g. `'\n'`)
+* A value held in a register (e.g. `#7`)
 In the following instructions, replace %val with a value and %reg with a register.
 
 Be sure to check out the [examples](examples) folder to see Topasm in action!
