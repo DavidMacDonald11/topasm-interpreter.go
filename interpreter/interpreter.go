@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"strconv"
+	"topasm/grammar"
 	"topasm/node"
 	"topasm/token"
 	"topasm/util"
@@ -127,8 +128,13 @@ func intDiv(ctx *Context, ins node.Node) {
 
 func intValue(ctx *Context, val node.Node) uint64 {
     if val.Name == "reg" { return ctx.GetReg(val) }
-
     s := val.Children[0].(token.Token).Str
+
+    if val.Name == "char" {
+        if len(s) == 3 { return uint64(s[1]) }
+        return grammar.EscapeSymbolMap()[s[2]]
+    }
+
     v, err := strconv.ParseUint(s, 10, 64)
     if err != nil { util.Fail(val, "Bad value") }
 

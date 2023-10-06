@@ -95,6 +95,7 @@ func parseInsValVal(ctx *Context, name string, prep string) node.Node {
 
 func parseValue(ctx *Context) node.Node {
     if ctx.Next().Has("#") { return parseReg(ctx) }
+    if ctx.Next().Of(token.Char) { return parseChar(ctx) }
     return parseNum(ctx)
 }
 
@@ -102,6 +103,11 @@ func parseReg(ctx *Context) node.Node {
     hash := ctx.ExpectingHas("#")
     num := ctx.ExpectingOf(token.Num)
     return node.New("reg", hash, num)
+}
+
+func parseChar(ctx *Context) node.Node {
+    char := ctx.ExpectingOf(token.Char)
+    return node.New("char", char)
 }
 
 func parseNum(ctx *Context) node.Node {

@@ -35,6 +35,8 @@ func makeToken(file *SrcFile) token.Token {
         return makeNum(file)
     case strings.ContainsRune(grammar.Letters, next):
         return makeIdOrKey(file)
+    case next == '\'':
+        return makeChar(file)
     case next == ';':
         file.ReadCharsUntil("\n")
         return makeToken(file)
@@ -49,8 +51,9 @@ func makeToken(file *SrcFile) token.Token {
 }
 
 func makePunc(file *SrcFile) token.Token {
+    line := file.Line
     str := util.IfElse(file.AtEnd(), grammar.EOF, file.ReadChar())
-    return token.New(token.Punc, str, file.Line)
+    return token.New(token.Punc, str, line)
 }
 
 func makeNum(file *SrcFile) token.Token {
@@ -63,4 +66,19 @@ func makeIdOrKey(file *SrcFile) token.Token {
     isKey := slices.Contains(grammar.Keys(), str)
     kind := util.IfElse(isKey, token.Key, token.Id)
     return token.New(kind, str, file.Line)
+}
+
+func makeChar(file *SrcFile) token.Token {
+    b := strings.Builder{}
+    b.WriteString(file.ReadChar())
+
+    esc := file.NextChar() == '\\'
+    b.WriteString(file.ReadChars(util.IfElse(esc, 2, 1)))
+
+    q := file.ReadChar()
+    b.WriteString(q)
+
+    tok := token.New(token.Char, b.String(), file.Line)
+    if q != "'" { util.Fail(tok, "Unterminated char") }
+    return tok
 }

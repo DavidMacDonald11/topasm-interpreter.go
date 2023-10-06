@@ -15,6 +15,7 @@ const (
     Id Kind = "I"
     Key Kind = "K"
     Num Kind = "N"
+    Char Kind = "C"
     None Kind = "?"
 )
 

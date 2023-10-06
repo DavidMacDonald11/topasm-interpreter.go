@@ -1,0 +1,37 @@
+move 'H' into #0
+call printc
+
+move 'e' into #0
+call printc
+
+move 'l' into #0
+call printc
+call printc
+
+move 'o' into #0
+call printc
+
+move ' ' into #0
+call printc
+
+move 'W' into #0
+call printc
+
+move 'o' into #0
+call printc
+
+move 'r' into #0
+call printc
+
+move 'l' into #0
+call printc
+
+move 'd' into #0
+call printc
+
+move '!' into #0
+call printc
+
+move '\n' into #0
+call printc
+
