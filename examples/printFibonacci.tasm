@@ -1,5 +1,4 @@
 ; using #7 and #8 to hold last and current, respectively
-
 move 0 into #7
 move 1 into #8
 

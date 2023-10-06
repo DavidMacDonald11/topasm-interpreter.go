@@ -34,7 +34,7 @@ Subtract %val from %reg.
 Increase the value of %reg by 1.
 
 - Decrement: `dec %reg`
-Decrease the value of %reg by 2.
+Decrease the value of %reg by 1.
 
 #### Advanced Value Instructions
 - Multiplication: `mul %reg`

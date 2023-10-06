@@ -39,7 +39,7 @@ func intJump(ctx *Context, ins node.Node) {
     eq, lt := ctx.GetCompFlags()
 
     switch jump.Str {
-    case "jump":
+    case "jump": ctx.Jump(l)
     case "jumpNE": if !eq { ctx.Jump(l) }
     case "jumpEQ": if eq { ctx.Jump(l) }
     case "jumpLT": if lt { ctx.Jump(l) }
