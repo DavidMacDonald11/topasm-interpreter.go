@@ -10,13 +10,12 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func TokenizeFile(path string) []token.Token {
-    file := NewSrcFile(path)
+func TokenizeFile(file *SrcFile) []token.Token {
     tokens := []token.Token{}
 
     for {
         saveNewline := len(tokens) > 0 && !tokens[len(tokens) - 1].Has("\n")
-        tok := makeToken(&file)
+        tok := makeToken(file)
 
         if saveNewline || !tok.Has("\n") { tokens = append(tokens, tok) }
         if tok.Has(grammar.EOF) { return tokens }
