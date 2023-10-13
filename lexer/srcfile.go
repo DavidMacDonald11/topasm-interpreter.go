@@ -19,7 +19,7 @@ func OpenSrcFile(path string) SrcFile {
     if err != nil { log.Fatal(err) }
 
     return SrcFile {
-        contents: string(file),
+        contents: string(file) + "\n",
         buf: strings.Builder{},
         pos: 0,
         Line: 1,

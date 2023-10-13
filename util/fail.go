@@ -1,6 +1,9 @@
 package util
 
-import "log"
+import (
+	"fmt"
+	"os"
+)
 
 type Positioner interface {
     Position() int
@@ -8,5 +11,6 @@ type Positioner interface {
 
 func Fail(p Positioner, msg string) {
     pos := p.Position()
-    log.Fatalf("Error: %s (on line %d)\n", msg, pos)
+    fmt.Printf("Error: %s (on line %d)\n", msg, pos)
+    os.Exit(1)
 }
