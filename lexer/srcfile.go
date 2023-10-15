@@ -14,21 +14,12 @@ type SrcFile struct {
     Line int
 }
 
-func OpenSrcFile(path string) SrcFile {
+func NewSrcFile(path string) SrcFile {
     file, err := os.ReadFile(path)
     if err != nil { log.Fatal(err) }
 
     return SrcFile {
         contents: string(file) + "\n",
-        buf: strings.Builder{},
-        pos: 0,
-        Line: 1,
-    }
-}
-
-func MakeSrcFile(text string) SrcFile {
-    return SrcFile {
-        contents: text + "\n",
         buf: strings.Builder{},
         pos: 0,
         Line: 1,

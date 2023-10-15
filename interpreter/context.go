@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"topasm/node"
@@ -9,12 +10,18 @@ import (
 	"topasm/util"
 )
 
+type counter struct {
+    label string
+    n uint64
+}
+
 type Context struct {
     i int
     regs [10]uint64
     labels map[string]int
     eqFlag bool
     ltFlag bool
+    loopCounter counter
 }
 
 func NewContext(tree node.Node) Context {
@@ -24,10 +31,16 @@ func NewContext(tree node.Node) Context {
         ins := tree.Children[i * 2].(node.Node)
         if ins.Name != "label" { continue }
 
-        labels[ins.Children[0].(token.Token).Str] = i
+        tok := ins.Children[0].(token.Token)
+
+        if _, ok := labels[tok.Str]; ok {
+            util.Fail(tok, "Duplicate label")
+        }
+
+        labels[tok.Str] = i
     }
 
-    return Context{0, [10]uint64{}, labels, false, false}
+    return Context{0, [10]uint64{}, labels, false, false, counter{}}
 }
 
 func (c *Context) SetReg(r node.Node, val uint64) {
@@ -66,6 +79,15 @@ func (c *Context) GetLabel(label token.Token) string {
 
 func (c *Context) Jump(label string) {
     c.i = c.labels[label]
+
+    if c.loopCounter.label != label {
+        c.loopCounter = counter{label, 0}
+    } else if c.loopCounter.n > 499999999 {
+        fmt.Printf("Infinte loop detected at label '%s'\n", label)
+        os.Exit(2)
+    } else {
+        c.loopCounter.n++
+    }
 }
 
 func (c Context) String() string {
